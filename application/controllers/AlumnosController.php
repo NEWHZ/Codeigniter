@@ -10,9 +10,7 @@ class AlumnosController extends CI_Controller
     public function __construct()
     {
         parent::__construct();
-
-        $model = array('Model_alumnos');
-        $this->load->model($model);
+        $this->load->model('Model_alumnos');  // Load model directly
     }
 
     /**
@@ -29,11 +27,18 @@ class AlumnosController extends CI_Controller
     /**
      * Carga vista formulario
      */
-    public function form($alumno = "")
+    public function form($id = "")
     {
-        $this->data['titulo'] = "Mantenimiento de Alumnos";
+        if ($id) {
+            $this->data['alumno'] = $this->Model_alumnos->getAlumnoById($id);
+            $this->data['accion'] = site_url('AlumnosController/update/'.$id);
+            $this->data['titulo'] = "Editar Alumno";
+        } else {
+            $this->data['accion'] = site_url('alumnosController/create');
+            $this->data['titulo'] = "Nuevo Alumno";
+        }
+
         $this->data['vista'] = "alumno/form";
-        $this->data['accion'] = site_url('alumnosController/create');
         $this->load->view('layout/partialView', $this->data);
     }
 
@@ -57,11 +62,64 @@ class AlumnosController extends CI_Controller
             if ($this->Model_alumnos->create($datos)) {
                 $this->session->set_flashdata('eok', 'Registro creado satisfactoriamente');
             } else {
-                $this->session->set_flashdata('eerror', 'Ocurrio un error al intentar crear el registro');
+                $this->session->set_flashdata('eerror', 'Ocurrió un error al intentar crear el registro');
             }
-            redirect('alumnosController/form/');
+            redirect('alumnosController');
         } else {
             $this->session->set_flashdata('eerror', 'Error al guardar el registro, contacte al administrador');
+            redirect('alumnosController/form');
+        }
+    }
+    
+    /**
+     * Carga el formulario para editar un alumno
+     */
+    public function edit($id)
+    {
+        $this->data['alumno'] = $this->Model_alumnos->getAlumnoById($id);
+        $this->data['titulo'] = "Editar Alumno";
+        $this->data['vista'] = "alumno/form";
+        $this->data['accion'] = site_url('AlumnosController/update/'.$id);
+        $this->load->view('layout/partialView', $this->data);
+    }
+
+    /**
+     * Actualiza un registro de alumno
+     */
+    public function update($id)
+    {
+        if ($_POST) {
+            $datos = array(
+                'nombre' => $this->input->post('nombre'),
+                'apellido' => $this->input->post('apellido'),
+                'direccion' => $this->input->post('direccion'),
+                'movil' => $this->input->post('movil'),
+                'email' => $this->input->post('email'),
+                'inactivo' => $this->input->post('inactivo'),
+                'user' => 1
+            );
+
+            if ($this->Model_alumnos->update($id, $datos)) {
+                $this->session->set_flashdata('eok', 'Registro actualizado satisfactoriamente');
+            } else {
+                $this->session->set_flashdata('eerror', 'Ocurrió un error al intentar actualizar el registro');
+            }
+            redirect('alumnosController');
+        } else {
+            $this->session->set_flashdata('eerror', 'Error al actualizar el registro, contacte al administrador');
+            redirect('alumnosController/form/'.$id);
+        }
+    }
+
+    /**
+     * Elimina un registro de alumno
+     */
+    public function delete($id)
+    {
+        if ($this->Model_alumnos->delete($id)) {
+            $this->session->set_flashdata('eok', 'Alumno eliminado satisfactoriamente');
+        } else {
+            $this->session->set_flashdata('eerror', 'Ocurrió un error al intentar eliminar el alumno');
         }
         redirect('alumnosController');
     }
