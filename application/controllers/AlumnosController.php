@@ -10,16 +10,16 @@ class AlumnosController extends CI_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->load->model('Model_alumnos');  // Load model directly
+        $this->load->model('Model_alumnos');  // Load the model directly
     }
 
     /**
      * Carga vista principal
      */
-    function index()
+    public function index()
     {
         $this->data['resultados'] = $this->Model_alumnos->getAlumnos();
-        $this->data['titulo'] = "Mantenimiento de Alumnos | Este es mi titulo";
+        $this->data['titulo'] = "Mantenimiento de Alumnos | Este es mi título";
         $this->data['vista'] = "alumno/index";
         $this->load->view('layout/partialView', $this->data);
     }
@@ -27,24 +27,26 @@ class AlumnosController extends CI_Controller
     /**
      * Carga vista formulario
      */
-    public function form($id = "")
+    public function form($alumno = "")
     {
-        if ($id) {
-            $this->data['alumno'] = $this->Model_alumnos->getAlumnoById($id);
-            $this->data['accion'] = site_url('AlumnosController/update/'.$id);
-            $this->data['titulo'] = "Editar Alumno";
+        $this->data['titulo'] = "Mantenimiento de Alumnos";
+        $this->data['vista'] = "alumno/form";
+        
+        if ($alumno) {
+            // Load the student data to edit
+            $this->data['alumno'] = $this->Model_alumnos->getAlumnoById($alumno);
+            $this->data['accion'] = site_url('AlumnosController/update/' . $alumno);
         } else {
-            $this->data['accion'] = site_url('alumnosController/create');
-            $this->data['titulo'] = "Nuevo Alumno";
+            // Default action for creating a new record
+            $this->data['accion'] = site_url('AlumnosController/create');
         }
 
-        $this->data['vista'] = "alumno/form";
         $this->load->view('layout/partialView', $this->data);
     }
 
     /**
      * Recibe los datos del formulario para crear un nuevo registro
-     * @return [type] [retorna vista con datos cargados en edit]
+     * @return void
      */
     public function create()
     {
@@ -60,33 +62,23 @@ class AlumnosController extends CI_Controller
             );
 
             if ($this->Model_alumnos->create($datos)) {
-                $this->session->set_flashdata('eok', 'Registro creado satisfactoriamente');
+                $this->session->set_flashdata('swal', 'insert_success');
             } else {
-                $this->session->set_flashdata('eerror', 'Ocurrió un error al intentar crear el registro');
+                $this->session->set_flashdata('swal', 'insert_error');
             }
-            redirect('alumnosController');
+            redirect('AlumnosController');
         } else {
-            $this->session->set_flashdata('eerror', 'Error al guardar el registro, contacte al administrador');
-            redirect('alumnosController/form');
+            $this->session->set_flashdata('swal', 'insert_error');
+            redirect('AlumnosController/form');
         }
-    }
-    
-    /**
-     * Carga el formulario para editar un alumno
-     */
-    public function edit($id)
-    {
-        $this->data['alumno'] = $this->Model_alumnos->getAlumnoById($id);
-        $this->data['titulo'] = "Editar Alumno";
-        $this->data['vista'] = "alumno/form";
-        $this->data['accion'] = site_url('AlumnosController/update/'.$id);
-        $this->load->view('layout/partialView', $this->data);
     }
 
     /**
-     * Actualiza un registro de alumno
+     * Actualiza un registro existente
+     * @param int $alumno
+     * @return void
      */
-    public function update($id)
+    public function update($alumno)
     {
         if ($_POST) {
             $datos = array(
@@ -99,28 +91,30 @@ class AlumnosController extends CI_Controller
                 'user' => 1
             );
 
-            if ($this->Model_alumnos->update($id, $datos)) {
-                $this->session->set_flashdata('eok', 'Registro actualizado satisfactoriamente');
+            if ($this->Model_alumnos->update($alumno, $datos)) {
+                $this->session->set_flashdata('swal', 'update_success');
             } else {
-                $this->session->set_flashdata('eerror', 'Ocurrió un error al intentar actualizar el registro');
+                $this->session->set_flashdata('swal', 'update_error');
             }
-            redirect('alumnosController');
+            redirect('AlumnosController');
         } else {
-            $this->session->set_flashdata('eerror', 'Error al actualizar el registro, contacte al administrador');
-            redirect('alumnosController/form/'.$id);
+            $this->session->set_flashdata('swal', 'update_error');
+            redirect('AlumnosController/form/' . $alumno);
         }
     }
 
     /**
-     * Elimina un registro de alumno
+     * Elimina un registro existente
+     * @param int $alumno
+     * @return void
      */
-    public function delete($id)
+    public function delete($alumno)
     {
-        if ($this->Model_alumnos->delete($id)) {
-            $this->session->set_flashdata('eok', 'Alumno eliminado satisfactoriamente');
+        if ($this->Model_alumnos->delete($alumno)) {
+            $this->session->set_flashdata('swal', 'delete_success');
         } else {
-            $this->session->set_flashdata('eerror', 'Ocurrió un error al intentar eliminar el alumno');
+            $this->session->set_flashdata('swal', 'delete_error');
         }
-        redirect('alumnosController');
+        redirect('AlumnosController');
     }
 }
